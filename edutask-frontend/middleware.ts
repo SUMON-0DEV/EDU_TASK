@@ -37,9 +37,18 @@ export async function middleware(request: NextRequest) {
 
   let response = NextResponse.next({ request })
 
+  // Check if environment variables are available
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error('Missing Supabase environment variables in middleware')
+    return response
+  }
+
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseAnonKey,
     {
       cookies: {
         getAll() {
@@ -74,11 +83,19 @@ export async function middleware(request: NextRequest) {
   }
 
   // Fetch profile state
-  const { data: profile } = await supabase
-    .from('users')
-    .select('email_verified, profile_complete, is_banned, is_admin')
-    .eq('id', user.id)
-    .single()
+  let profile
+  try {
+    const { data: profileData } = await supabase
+      .from('users')
+      .select('email_verified, profile_complete, is_banned, is_admin')
+      .eq('id', user.id)
+      .single()
+    profile = profileData
+  } catch (error) {
+    console.error('Error fetching profile in middleware:', error)
+    // Continue without profile data if database fails
+    profile = null
+  }
 
   const emailVerified = profile?.email_verified ?? false
   const profileComplete = profile?.profile_complete ?? false
