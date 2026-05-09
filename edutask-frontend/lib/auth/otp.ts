@@ -86,14 +86,13 @@ export async function sendEmailVerificationOTP(userId: string, email: string) {
     console.log('OTP code:', otp)
     console.log('*** FOR TESTING: OTP CODE IS:', otp, '***')
     
-    // Temporarily bypass email sending for testing
-    // const result = await getResend().emails.send({
-    //   from: 'EduTask <onboarding@resend.dev>',
-    //   to: normalizedEmail,
-    //   subject: 'Your EduTask Email Verification Code',
-    //   html: buildOTPEmailHTML(otp, 'email_verify'),
-    // })
-    // console.log('Email send result:', result)
+    const result = await getResend().emails.send({
+      from: 'EduTask <onboarding@resend.dev>',
+      to: normalizedEmail,
+      subject: 'Your EduTask Email Verification Code',
+      html: buildOTPEmailHTML(otp, 'email_verify'),
+    })
+    console.log('Email send result:', result)
     
     return { success: true }
   } catch (err) {
